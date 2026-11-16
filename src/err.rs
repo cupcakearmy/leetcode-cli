@@ -29,7 +29,7 @@ pub enum Error {
          Either you can handwrite your `LEETCODE_SESSION` and `csrf` into `leetcode.toml`, \
          more info please checkout this: \
          https://github.com/clearloop/leetcode-cli/blob/master/README.md#cookies",
-        "please make sure you have logined in leetcode.com with chrome. ".yellow().bold()
+        "please make sure you have logined in leetcode.com with chrome or firefox. ".yellow().bold()
     )]
     CookieError,
     #[error(
@@ -55,8 +55,8 @@ pub enum Error {
     )]
     Config(#[from] toml::de::Error),
     #[error(
-        "No LeetCode cookies found in Chrome. \
-         Please log in at https://leetcode.com in Chrome, \
+        "No LeetCode cookies found in Chrome or Firefox. \
+         Please log in at https://leetcode.com in either browser, \
          or set `csrf` and `session` in `~/.leetcode/leetcode.toml`."
     )]
     CookieNotFound,

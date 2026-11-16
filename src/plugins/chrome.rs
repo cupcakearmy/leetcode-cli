@@ -16,7 +16,23 @@ type Aes128CbcDec = cbc::Decryptor<aes::Aes128>;
 #[derive(Debug)]
 pub struct Ident {
     pub csrf: String,
-    session: String,
+    pub session: String,
+}
+
+impl Ident {
+    /// Build an identity from a browser cookie jar.
+    pub fn from_jar(jar: &HashMap<String, String>) -> Result<Self> {
+        Ok(Self {
+            csrf: jar
+                .get("csrftoken")
+                .ok_or(Error::CookieNotFound)?
+                .to_string(),
+            session: jar
+                .get("LEETCODE_SESSION")
+                .ok_or(Error::CookieNotFound)?
+                .to_string(),
+        })
+    }
 }
 
 impl Display for Ident {
@@ -29,29 +45,6 @@ impl Display for Ident {
     }
 }
 
-/// Get cookies, preferring the configured ones and falling back to Chrome.
-pub fn cookies() -> Result<Ident> {
-    let ccfg = crate::config::Config::locate()?.cookies;
-    if !ccfg.csrf.is_empty() && !ccfg.session.is_empty() {
-        return Ok(Ident {
-            csrf: ccfg.csrf,
-            session: ccfg.session,
-        });
-    }
-
-    let jar = chrome_cookies(&ccfg.site.to_string())?;
-    Ok(Ident {
-        csrf: jar
-            .get("csrftoken")
-            .ok_or(Error::CookieNotFound)?
-            .to_string(),
-        session: jar
-            .get("LEETCODE_SESSION")
-            .ok_or(Error::CookieNotFound)?
-            .to_string(),
-    })
-}
-
 #[derive(QueryableByName)]
 struct CookieRow {
     #[diesel(sql_type = sql_types::Text)]
@@ -61,7 +54,7 @@ struct CookieRow {
 }
 
 /// Read Chrome's cookie DB for `domain` and decrypt the matching values.
-fn chrome_cookies(domain: &str) -> Result<HashMap<String, String>> {
+pub fn cookies(domain: &str) -> Result<HashMap<String, String>> {
     let db = cookie_db_path().ok_or(Error::CookieNotFound)?;
 
     // Chrome keeps the DB locked while running; read from a snapshot copy.

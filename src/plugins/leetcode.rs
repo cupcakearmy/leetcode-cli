@@ -33,7 +33,7 @@ impl LeetCode {
     pub fn new() -> Result<LeetCode> {
         let conf = config::Config::locate()?;
         let (cookie, csrf) = if conf.cookies.csrf.is_empty() || conf.cookies.session.is_empty() {
-            let cookies = super::chrome::cookies()?;
+            let cookies = super::cookies()?;
             (cookies.to_string(), cookies.csrf)
         } else {
             (conf.cookies.clone().to_string(), conf.cookies.clone().csrf)
